@@ -18,7 +18,8 @@ library(groundhog)
 groundhog_date <- "2025-04-10"
 meta.groundhog(groundhog_date)
 
-pkgs_analysis <- c("tidyverse", "yhat", "boot", "car", "lmtest", "olsrr")
+pkgs_analysis <- c("tidyverse", "yhat", "boot", "car", "lmtest", "olsrr", "psych",
+                   "performance")
 groundhog.library(pkgs_analysis, groundhog_date)
 
 #Source custom functions
@@ -120,7 +121,6 @@ if (!exists("boot.regOut_cdi_ABC")) {
 boot.regOut_cdi_ABC <- boot(cope_ca_data_nonimputed_ABC, boot.yhat.prec, 1000, lmOut = cdi_ABC_nonimputed, regrout0 = regOut_cdi_ABC, prec = 6)
 }
 boot.regOut_cdi_ABC_result <- booteval.yhat(regOut_cdi_ABC, boot.regOut_cdi_ABC, bty = "perc", prec = 6)
-}
 print(boot.regOut_cdi_ABC_result$combCIaps)
 print(boot.regOut_cdi_ABC_result$combCIpm["b"])
 
@@ -346,48 +346,119 @@ cbind(Frequency = table(cope_ca_data_nonimputed_ABC$b_dem_grade), Percentage = r
 cbind(Frequency = table(cope_ca_data_nonimputed$b_dem_grade), Percentage = round((prop.table(table(cope_ca_data_nonimputed$b_dem_grade))*100), 2))
 ```
 
+# Multicollinearity
 
-# Regression assumptions (Nonimputed)
+```{r results = "asis", include=T, echo = T, message=FALSE, warning=FALSE}
+sqrt(vif(cdi_PP_nonimputed))
+sqrt(vif(cdi_ABC_nonimputed))
+
+# No perfect collinearity
+
+# Estimating zero-order Pearson correlations among the predictors
+
+print(
+  psych::corr.test(
+    cope_ca_data_nonimputed_PP[, c("difference_score_bhs", "difference_score_shs", "pi_pfs_mean")],
+    use = "complete",
+    method = "pearson"
+  ),
+  digits = 10
+)
+
+print(
+  psych::corr.test(
+    cope_ca_data_nonimputed_ABC[, c("difference_score_bhs", "difference_score_shs", "pi_pfs_mean")],
+    use = "complete",
+    method = "pearson"
+  ),
+  digits = 10
+)
+```
+
+# Assumptions of full regression models (Nonimputed)
 
 ```{r, results = "asis", include=T, echo = T, message=FALSE, warning=FALSE}
 
-# Multicollinearity
-sqrt(vif(cdi_PP_nonimputed)) # should be less than 2
-sqrt(vif(cdi_ABC_nonimputed))
-#met for all models
-
-# Linearity of Data
+# Linear relation of predictors with outcome
 plot(cdi_PP_nonimputed, 1)
 plot(cdi_ABC_nonimputed, 1)
-#met for all models (I think)
+#met for both models
 
-# Predictors are Independent
-durbinWatsonTest(cdi_PP_nonimputed)
-durbinWatsonTest(cdi_ABC_nonimputed)
-#met for all models except for cdi_PP_nonimputed (p = 0.008)
+# Independent errors
+durbinWatsonTest(cdi_PP_nonimputed)  # rho_lag1 = -.126, D-W = 2.25, p = .008
+durbinWatsonTest(cdi_ABC_nonimputed) # rho_lag1 =  .036, D-W = 1.93, p = .444
+#met for both models except for cdi_PP_nonimputed
+
+## Plot residuals for PP
+res <- residuals(cdi_PP_nonimputed)
+
+### Residuals vs. lagged residuals
+current_res <- res[-1]
+lagged_res  <- res[-length(res)]
+plot(lagged_res, current_res,
+     xlab = "Lagged Residuals (Previous Row)", ylab = "Residuals (Current Row)",
+     main = "Residuals vs Lagged Residuals")
+ar1_fit <- lm(current_res ~ lagged_res)
+abline(ar1_fit, col = "red")
+rho <- coef(ar1_fit)[2]
+legend("topleft", bty = "n", text.col = "red",
+       legend = paste0("rho_lag1 = ", round(rho, 3)))
+
+### Residuals over data rows
+plot_res_over_rows <- function(res, xlim = NULL) {
+  title <- "Residuals Over Data Row Indices"
+  if (!is.null(xlim)) title <- paste(title, paste0(xlim[1], "-", xlim[2]))
+  
+  plot(res, type = "o", main = title, xlim = xlim,
+     xlab = "Row Index", ylab = "Residuals")
+  abline(h = 0, col = "black", lwd = 2, lty = 2)
+}
+
+par(mfrow = c(3,1))
+plot_res_over_rows(res)
+plot_res_over_rows(res, c(100, 200))
+plot_res_over_rows(res, c(200, 300))
+par(mfrow = c(1,1))
+
+## Rerun test for PP model fit to data with randomly sorted rows
+cope_ca_data_nonimputed_PP_rand <- cope_ca_data_nonimputed_PP[sample(nrow(cope_ca_data_nonimputed_PP)), ]
+
+cdi_PP_nonimputed_rand <- lm(formula(cdi_PP_nonimputed), cope_ca_data_nonimputed_PP_rand)
+all.equal(summary(cdi_PP_nonimputed)$coefficients, 
+          summary(cdi_PP_nonimputed_rand)$coefficients) # Same model summary
+
+durbinWatsonTest(cdi_PP_nonimputed_rand) # rho_lag1 = .015, D-W = 1.96, p = .672 (no violation)
 
 # Homoscedasticity
-##plot
+## plot
 plot(cdi_PP_nonimputed, 3)
 plot(cdi_ABC_nonimputed, 3)
+## plot with CIs (per Shatz, 2024, p. 834)
+plot(check_heteroscedasticity(cdi_PP_nonimputed))
+plot(check_heteroscedasticity(cdi_ABC_nonimputed))
 ## original Breusch-Pagan test
-ncvTest(cdi_PP_nonimputed)
-ncvTest(cdi_ABC_nonimputed)
-#cdi_ABC_nonimputed did not meet assumptions
+ncvTest(cdi_PP_nonimputed)  # chisq(1) = 0.19, p = .663
+ncvTest(cdi_ABC_nonimputed) # chisq(1) = 16.96, p < .001
+#cdi_ABC_nonimputed did not meet assumption
 ## studentized Breusch-Pagan test
-bptest(cdi_PP_nonimputed)
-bptest(cdi_ABC_nonimputed)
+bptest(cdi_PP_nonimputed)   # BP = 4.53, df = 3, p = .210
+bptest(cdi_ABC_nonimputed)  # BP = 15.39, df = 3, p = .002
 #same outcome
 
-# Normality of Residual Errors
+# Normality of errors
 ols_plot_resid_qq(cdi_PP_nonimputed)
 ols_plot_resid_qq(cdi_ABC_nonimputed)
-# use Kolmogorov-Smirnov test
+
+# We decided to use the Kolmogorov-Smirnov test to more formally examine normality 
+# of errors based on the following recommendation: "The Shapiro–Wilk test is more 
+# appropriate method for small sample sizes (<50 samples) although it can also be 
+# handling on larger sample size while Kolmogorov–Smirnov test is used for n ≥50."
+# (Mishra et al., 2019; https://doi.org/10.4103/aca.ACA_157_18 )
+
 ols_test_normality(cdi_PP_nonimputed)
 ols_test_normality(cdi_ABC_nonimputed)
-#met for all models
+#met for both models
 ```
-
 
 ```{r pull session info}
 sink(file = "2025.08.25_sessionInfo_for_analysis_script.txt")
