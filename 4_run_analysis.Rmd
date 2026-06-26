@@ -99,9 +99,9 @@ pfs_formula <- difference_score_cdi ~ pi_pfs_mean
 
 # Run custom function to bootstrap beta and R^2 for each total effect
 
-bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_PP, beta_rsq, bhs_formula, 1000, 6)
-bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_PP, beta_rsq, shs_formula, 1000, 6)
-bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_PP, beta_rsq, pfs_formula, 1000, 6)
+(tot_eff_bhs_PP <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_PP, beta_rsq, bhs_formula, 1000, 6))
+(tot_eff_shs_PP <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_PP, beta_rsq, shs_formula, 1000, 6))
+(tot_eff_pfs_PP <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_PP, beta_rsq, pfs_formula, 1000, 6))
 
 # Project ABC, Depression
 
@@ -117,9 +117,9 @@ print(boot.regOut_cdi_ABC_result$combCIpm["b"])
 
 #We use the same formulas as above
 
-bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_ABC, beta_rsq, bhs_formula, 1000, 6)
-bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_ABC, beta_rsq, shs_formula, 1000, 6)
-bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_ABC, beta_rsq, pfs_formula, 1000, 6)
+(tot_eff_bhs_ABC <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_ABC, beta_rsq, bhs_formula, 1000, 6))
+(tot_eff_shs_ABC <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_ABC, beta_rsq, shs_formula, 1000, 6))
+(tot_eff_pfs_ABC <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_ABC, beta_rsq, pfs_formula, 1000, 6))
 ```
 
 # Multicollinearity
@@ -234,6 +234,80 @@ ols_plot_resid_qq(cdi_ABC_nonimputed)
 ols_test_normality(cdi_PP_nonimputed)
 ols_test_normality(cdi_ABC_nonimputed)
 #met for both models
+```
+
+# Plot total effects
+
+```{r results = "asis", include=T, echo = T, message=FALSE, warning=FALSE}
+
+# Define function to plot total effect of given predictor
+
+plot_total_effect <- function(dat, xvar, tot_eff, legend_position) {
+  # Define label for predictor and possible ranges for predictor and outcome
+  
+  xlabs <- c(difference_score_shs = "Change in Agency",
+             difference_score_bhs = "Change in Hopelessness",
+             pi_pfs_mean          = "Acceptability")
+  
+  xlims <- list(difference_score_shs = c(-7, 7),  # Mean at pre or post can be 1 to 8
+                difference_score_bhs = c(-3, 3),  # Mean at pre or post can be 0 to 3
+                pi_pfs_mean          = c(1, 5))   # Mean at post can be 1 to 5
+  
+  xbreaks_ls <- list(difference_score_shs = seq(-7, 7, 1),
+                     difference_score_bhs = seq(-3, 3, 1),
+                     pi_pfs_mean          = seq(1, 5, 1))
+  
+  xlab <- xlabs[[xvar]]
+  xlim <- xlims[[xvar]]
+  xbreaks <- xbreaks_ls[[xvar]]
+
+  ylim <- c(-24, 24)  # Sum score at pre or 3 months can be 0 to 24
+  ybreaks <- seq(-24, 24, 8)
+
+  # Get intercept, beta, and R2 from total effect model
+  
+  intercept <- tot_eff[["intercept"]]
+  beta <- tot_eff[[paste0(xvar, "_beta")]]
+  rsq <- tot_eff[["rsq"]]
+  
+  # Create plot
+  
+  plot(dat[[xvar]], dat$difference_score_cdi, pch = 16, cex = 0.5,
+       xlim = xlim, ylim = ylim, xaxt = "n", yaxt = "n",
+       xlab = xlab, ylab = "Change in Depression Sx", cex.lab = 0.9,
+       main = paste("Total Effect of", xlab), cex.main = 0.9)
+  axis(1, xbreaks, xbreaks, cex.axis = 0.6)
+  axis(2, ybreaks, ybreaks, cex.axis = 0.6)
+
+  abline(a = intercept, b = beta)
+  abline(h = 0, lty = 2)
+  abline(v = 0, lty = 2)
+  
+  legend(legend_position, bty = "n", cex = 0.9,
+         legend = c(paste0("Slope = ", formatC(beta, 2, format = "f")),
+                    paste0("R² = ", formatC(rsq * 100, 2, format = "f"), "%")))
+}
+
+# Run function for PP and ABC and export plots to PNG
+
+tot_eff_p_dir <- file.path("results", "total_effect_plots")
+dir.create(tot_eff_p_dir)
+
+png(file.path(tot_eff_p_dir, "total_effect_plots_PP.png"), 6.5, 6.5, "in", res = 300)
+par(mfrow = c(2, 2))
+plot_total_effect(cope_ca_data_nonimputed_PP, "difference_score_shs", tot_eff_shs_PP, "topright")
+plot_total_effect(cope_ca_data_nonimputed_PP, "difference_score_bhs", tot_eff_bhs_PP, "topright")
+plot_total_effect(cope_ca_data_nonimputed_PP, "pi_pfs_mean", tot_eff_pfs_PP, "topleft")
+par(mfrow = c(1, 1))
+dev.off()
+
+png(file.path(tot_eff_p_dir, "total_effect_plots_ABC.png"), 6.5, 6.5, "in", res = 300)
+par(mfrow = c(2, 2))
+plot_total_effect(cope_ca_data_nonimputed_ABC, "difference_score_shs", tot_eff_shs_ABC, "topright")
+plot_total_effect(cope_ca_data_nonimputed_ABC, "difference_score_bhs", tot_eff_bhs_ABC, "topright")
+plot_total_effect(cope_ca_data_nonimputed_ABC, "pi_pfs_mean", tot_eff_pfs_ABC, "topleft")
+par(mfrow = c(1, 1))
+dev.off()
 ```
 
 ```{r pull session info}

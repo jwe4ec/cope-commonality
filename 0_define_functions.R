@@ -42,7 +42,7 @@ boot.yhat.prec <- function (data, indices, lmOut, regrout0, prec = NULL)
 # Define "beta_rsq()" ----
 # ---------------------------------------------------------------------------- #
 
-# Define function to get beta and R^2 for total effect
+# Define function to get intercept, beta, and R^2 for total effect
 
 beta_rsq <- function(data, bootstrap_rows, formula) { 
   # Fit linear model
@@ -51,6 +51,11 @@ beta_rsq <- function(data, bootstrap_rows, formula) {
     formula = formula,
     data = data[bootstrap_rows, ]
   )
+  
+  # Get and name intercept
+  
+  intercept <- summary(model)$coefficients[, "Estimate"][1]
+  names(intercept) <- "intercept"
   
   # Get and name beta for total effect
   
@@ -63,9 +68,9 @@ beta_rsq <- function(data, bootstrap_rows, formula) {
   rsq <- summary(model)$r.squared
   names(rsq) <- "rsq"
   
-  # Return both statistics
+  # Return all three statistics
   
-  beta_rsq <- c(beta, rsq)
+  beta_rsq <- c(intercept, beta, rsq)
   
   return(beta_rsq)
 }
@@ -83,19 +88,21 @@ bootstrap_beta_rsq <- function(seed, data, statistic = beta_rsq, formula, R, pre
   set.seed(seed)
   boot_out <- boot(data = data, statistic = statistic, formula = formula, R = R)
   
-  # Get point estimates for beta and R^2
+  # Get point estimates for intercept, beta, and R^2
   
-  est_beta <- boot_out$t0[1]
-  est_rsq <- boot_out$t0[2]
+  est_int <- boot_out$t0[1]
+  est_beta <- boot_out$t0[2]
+  est_rsq <- boot_out$t0[3]
   
   # Get 95% CIs for beta and R^2
   
-  ci_beta <- boot.ci(boot_out, index = 1, type = "perc")$percent[4:5]
-  ci_rsq <- boot.ci(boot_out, index = 2, type = "perc")$percent[4:5]
+  ci_beta <- boot.ci(boot_out, index = 2, type = "perc")$percent[4:5]
+  ci_rsq <- boot.ci(boot_out, index = 3, type = "perc")$percent[4:5]
   
   # Round and return results
   
-  res <- c(est_beta,
+  res <- c(est_int,
+           est_beta,
            ci_beta_ll = ci_beta[1],
            ci_beta_ul = ci_beta[2],
            est_rsq,
