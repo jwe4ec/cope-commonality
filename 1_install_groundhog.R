@@ -1,3 +1,5 @@
+# Use R 4.4.0
+
 # Install groundhog package for the first time (type "OK" in console when prompted)
 
 install.packages("groundhog")
