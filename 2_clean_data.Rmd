@@ -1,10 +1,3 @@
----
-title: "COPE Commonality Analysis"
-author: "Arielle Smith and Laura Jans"
-date: "2025-08-25"
-output: html_document
----
-
 ```{r setup}
 # Use R 4.4.0
 
@@ -112,7 +105,10 @@ write.csv(cope_ca_data_nonimputed, file='cope_ca_data_nonimputed.csv')
 ```
 
 ```{r pull session info}
-sink(file = "2025.08.25_sessionInfo_for_cleaning_script.txt")
+session_info_path <- file.path("session_info")
+dir.create(session_info_path)
+
+sink(file.path(session_info_path, "2025.08.25_sessionInfo_for_cleaning_script.txt"))
 sessionInfo()
 sink()
 ```

@@ -1,12 +1,3 @@
----
-title: "PCA Output"
-author: "Laura Jans and Arielle Smith"
-date: "2025-08-25"
-output:
-  pdf_document: default
-  html_document: default
----
-
 ```{r set up}
 # Use R 4.4.0
 
@@ -22,7 +13,6 @@ groundhog.library(pkgs_pca, groundhog_date)
 #Read in data
 cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed.csv")
 ```
-
 
 ```{r PFS correlation matrix}
 #For the nonimputed dataset
