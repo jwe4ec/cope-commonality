@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------------- #
+# Define "boot.yhat.prec()" ----
+# ---------------------------------------------------------------------------- #
+
 # Define an adaptation of "yhat" package's function "boot.yhat()" to optionally
 # take a "prec" argument that can be passed to "calc.yhat()"
 # - This is so that when running "booteval.yhat(prec = D)" the output will actually 
@@ -32,4 +36,95 @@ boot.yhat.prec <- function (data, indices, lmOut, regrout0, prec = NULL)
     tau[i] <- cor.test(s1, s2, method = "kendall", exact = FALSE)$estimate
   }
   c(pm, pdm, apsm, tau)
+}
+
+# ---------------------------------------------------------------------------- #
+# Define "beta_rsq()" ----
+# ---------------------------------------------------------------------------- #
+
+# Define function to get beta and R^2 for total effect
+
+beta_rsq <- function(data, bootstrap_rows, formula) { 
+  # Fit linear model
+  
+  model <- lm(
+    formula = formula,
+    data = data[bootstrap_rows, ]
+  )
+  
+  # Get and name beta for total effect
+  
+  beta <- summary(model)$coefficients[, "Estimate"][2]
+  predictor_name <- names(beta)
+  names(beta) <- paste0(predictor_name, "_beta")
+  
+  # Get and name R^2
+  
+  rsq <- summary(model)$r.squared
+  names(rsq) <- "rsq"
+  
+  # Return both statistics
+  
+  beta_rsq <- c(beta, rsq)
+  
+  return(beta_rsq)
+}
+
+# ---------------------------------------------------------------------------- #
+# Define "bootstrap_beta_rsq()" ----
+# ---------------------------------------------------------------------------- #
+
+# Define function to bootstrap beta and R^2 for total effect
+# - Includes option to round results to D number of decimal digits ("prec = D")
+
+bootstrap_beta_rsq <- function(seed, data, statistic = beta_rsq, formula, R, prec = NULL) {
+  # Bootstrap beta and R^2
+  
+  set.seed(seed)
+  boot_out <- boot(data = data, statistic = statistic, formula = formula, R = R)
+  
+  # Get point estimates for beta and R^2
+  
+  est_beta <- boot_out$t0[1]
+  est_rsq <- boot_out$t0[2]
+  
+  # Get 95% CIs for beta and R^2
+  
+  ci_beta <- boot.ci(boot_out, index = 1, type = "perc")$percent[4:5]
+  ci_rsq <- boot.ci(boot_out, index = 2, type = "perc")$percent[4:5]
+  
+  # Round and return results
+  
+  res <- c(est_beta,
+           ci_beta_ll = ci_beta[1],
+           ci_beta_ul = ci_beta[2],
+           est_rsq,
+           ci_rsq_ll = ci_rsq[1],
+           ci_rsq_ul = ci_rsq[2])
+  
+  if (!is.null(prec)) {
+    res <- round(res, prec)
+  }
+  
+  return(res)
+}
+
+# ---------------------------------------------------------------------------- #
+# Define function to compute count and percentages for demographics ----
+# ---------------------------------------------------------------------------- #
+
+get_count_perc <- function(df, col_name) {
+  df_name <- deparse(substitute(df))
+  
+  count   <- sum(df[[col_name]], na.rm = T)
+  total_n <- nrow(df)
+  perc    <- round((count / total_n) * 100, 2)
+  
+  count_perc <- data.frame(df_name  = df_name,
+                           col_name = col_name,  
+                           count    = count, 
+                           total_n  = total_n, 
+                           perc     = perc)
+  
+  return(count_perc)
 }
