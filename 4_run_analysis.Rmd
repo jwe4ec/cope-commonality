@@ -4,7 +4,7 @@ author: "Laura Jans and Arielle Smith"
 date: "2025-08-25"
 output: html_document
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 # Loading Cleaned Data
@@ -34,6 +34,7 @@ set.seed(6804275)
 # Creating Difference Scores
 
 ## Dependent Variable
+
 ```{r}
 #Creating difference scores for depression (pre-SSI to 3M)
 cope_ca_data_nonimputed <- cope_ca_data_nonimputed %>% 
@@ -52,7 +53,7 @@ cope_ca_data_nonimputed <- cope_ca_data_nonimputed %>%
   mutate(difference_score_shs = pi_shs_mean - b_shs_mean)
 ```
 
-# Running Regressions (Nonimputed)
+# Running Full Regression Models (Nonimputed)
 
 ```{r, results = "asis", include=T, echo = T, message=FALSE, warning=FALSE}
 
@@ -61,26 +62,25 @@ cope_ca_data_nonimputed <- cope_ca_data_nonimputed %>%
 cope_ca_data_nonimputed_PP <- subset(cope_ca_data_nonimputed, condition == 1)
 cope_ca_data_nonimputed_ABC <- subset(cope_ca_data_nonimputed, condition == 2)
 
-# Run main regressions
+# Run full regression models
 
-# Project Personality, Nonnonimputed
+## Project Personality, Nonimputed
 
 cdi_PP_nonimputed <- lm(difference_score_cdi ~ difference_score_bhs + difference_score_shs + pi_pfs_mean, data = cope_ca_data_nonimputed_PP)
 summary(cdi_PP_nonimputed)
 
-# ABC Project, Nonnonimputed
+## ABC Project, Nonimputed
 
 cdi_ABC_nonimputed <- lm(difference_score_cdi ~ difference_score_bhs + difference_score_shs + pi_pfs_mean, data = cope_ca_data_nonimputed_ABC)
 summary(cdi_ABC_nonimputed)
 ```
 Note: We decided to use mean for the PFS instead of component scores.
 
-
 # Commonality Analysis (Nonimputed)
 
 ```{r, results = "asis", include=T, echo = T, message=FALSE, warning=FALSE}
 
-# First, let's look at the r^2 for each model
+# First, let's look at the r^2 for each full regression model
 
 summary(cdi_PP_nonimputed)$r.squared
 summary(cdi_ABC_nonimputed)$r.squared
@@ -92,30 +92,260 @@ regOut_cdi_PP <- calc.yhat(cdi_PP_nonimputed, prec = 6)
 # Bootstrap 1000 times to get CIs
 
 set.seed(6804275)
-boot.regOut_cdi_PP <-boot(cope_ca_data_nonimputed_PP, boot.yhat.prec, 1000, lmOut = cdi_PP_nonimputed, regrout0 = regOut_cdi_PP, prec = 6)
+if (!exists("boot.regOut_cdi_PP")) {
+boot.regOut_cdi_PP <- boot(cope_ca_data_nonimputed_PP, boot.yhat.prec, 1000, lmOut = cdi_PP_nonimputed, regrout0 = regOut_cdi_PP, prec = 6)
+}
 boot.regOut_cdi_PP_result <- booteval.yhat(regOut_cdi_PP, boot.regOut_cdi_PP, bty="perc", prec = 6)
-print(boot.regOut_cdi_PP_result$combCIaps)
-print(boot.regOut_cdi_PP_result$combCIpm["b"])
+print(boot.regOut_cdi_PP_result$combCIaps) # Get commonality coefficients (and bootstrap CIs) for unique and common effects
+print(boot.regOut_cdi_PP_result$combCIpm["b"]) # Get betas (and bootstrap CIs) for unique effects
 
-# Regress depression onto each predictor individually to get total effects
-summary(lm(difference_score_cdi ~ difference_score_bhs, data = cope_ca_data_nonimputed_PP))
-summary(lm(difference_score_cdi ~ difference_score_shs, data = cope_ca_data_nonimputed_PP))
-summary(lm(difference_score_cdi ~ pi_pfs_mean, data = cope_ca_data_nonimputed_PP))
+# Define formulas for total effect models
+
+bhs_formula <- difference_score_cdi ~ difference_score_bhs
+shs_formula <- difference_score_cdi ~ difference_score_shs
+pfs_formula <- difference_score_cdi ~ pi_pfs_mean
+
+# Run custom function to bootstrap beta and R^2 for each total effect
+
+bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_PP, beta_rsq, bhs_formula, 1000, 6)
+bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_PP, beta_rsq, shs_formula, 1000, 6)
+bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_PP, beta_rsq, pfs_formula, 1000, 6)
 
 # Project ABC, Depression
 
 regOut_cdi_ABC <- calc.yhat(cdi_ABC_nonimputed, prec = 6)
 
 set.seed(6804275)
+if (!exists("boot.regOut_cdi_ABC")) {
 boot.regOut_cdi_ABC <- boot(cope_ca_data_nonimputed_ABC, boot.yhat.prec, 1000, lmOut = cdi_ABC_nonimputed, regrout0 = regOut_cdi_ABC, prec = 6)
+}
 boot.regOut_cdi_ABC_result <- booteval.yhat(regOut_cdi_ABC, boot.regOut_cdi_ABC, bty = "perc", prec = 6)
+}
 print(boot.regOut_cdi_ABC_result$combCIaps)
 print(boot.regOut_cdi_ABC_result$combCIpm["b"])
 
-summary(lm(difference_score_cdi ~ difference_score_bhs, data = cope_ca_data_nonimputed_ABC))
-summary(lm(difference_score_cdi ~ difference_score_shs, data = cope_ca_data_nonimputed_ABC))
-summary(lm(difference_score_cdi ~ pi_pfs_mean, data = cope_ca_data_nonimputed_ABC))
+#We use the same formulas as above
+
+bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_ABC, beta_rsq, bhs_formula, 1000, 6)
+bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_ABC, beta_rsq, shs_formula, 1000, 6)
+bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_ABC, beta_rsq, pfs_formula, 1000, 6)
 ```
+
+# Compute demographics
+
+```{r}
+# gender
+count_perc_b_dem_gender_agender_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_agender")
+count_perc_b_dem_gender_agender_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_agender")
+count_perc_b_dem_gender_agender_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_agender")
+count_perc_df_b_dem_gender_agender <- rbind(count_perc_b_dem_gender_agender_PP,
+                       count_perc_b_dem_gender_agender_ABC,
+                       count_perc_b_dem_gender_agender_total)
+count_perc_df_b_dem_gender_agender 
+
+count_perc_b_dem_gender_androgynous_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_androgynous")
+count_perc_b_dem_gender_androgynous_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_androgynous")
+count_perc_b_dem_gender_androgynous_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_androgynous")
+count_perc_df_b_dem_gender_androgynous <- rbind(count_perc_b_dem_gender_androgynous_PP,
+                       count_perc_b_dem_gender_androgynous_ABC,
+                       count_perc_b_dem_gender_androgynous_total)
+count_perc_df_b_dem_gender_androgynous 
+
+count_perc_b_dem_gender_gender_expansive_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_gender_expansive")
+count_perc_b_dem_gender_gender_expansive_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_gender_expansive")
+count_perc_b_dem_gender_gender_expansive_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_gender_expansive")
+count_perc_df_b_dem_gender_gender_expansive <- rbind(count_perc_b_dem_gender_gender_expansive_PP,
+                       count_perc_b_dem_gender_gender_expansive_ABC,
+                       count_perc_b_dem_gender_gender_expansive_total)
+count_perc_df_b_dem_gender_gender_expansive 
+
+count_perc_b_dem_gender_genderqueer_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_genderqueer")
+count_perc_b_dem_gender_genderqueer_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_genderqueer")
+count_perc_b_dem_gender_genderqueer_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_genderqueer")
+count_perc_df_b_dem_gender_genderqueer <- rbind(count_perc_b_dem_gender_genderqueer_PP,
+                       count_perc_b_dem_gender_genderqueer_ABC,
+                       count_perc_b_dem_gender_genderqueer_total)
+count_perc_df_b_dem_gender_genderqueer
+
+count_perc_b_dem_gender_man_boy_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_man_boy")
+count_perc_b_dem_gender_man_boy_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_man_boy")
+count_perc_b_dem_gender_man_boy_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_man_boy")
+count_perc_df_b_dem_gender_man_boy <- rbind(count_perc_b_dem_gender_man_boy_PP,
+                       count_perc_b_dem_gender_man_boy_ABC,
+                       count_perc_b_dem_gender_man_boy_total)
+count_perc_df_b_dem_gender_man_boy
+
+count_perc_b_dem_gender_nonbinary_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_nonbinary")
+count_perc_b_dem_gender_nonbinary_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_nonbinary")
+count_perc_b_dem_gender_nonbinary_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_nonbinary")
+count_perc_df_b_dem_gender_nonbinary <- rbind(count_perc_b_dem_gender_nonbinary_PP,
+                       count_perc_b_dem_gender_nonbinary_ABC,
+                       count_perc_b_dem_gender_nonbinary_total)
+count_perc_df_b_dem_gender_nonbinary
+
+count_perc_b_dem_gender_not_sure_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_not_sure")
+count_perc_b_dem_gender_not_sure_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_not_sure")
+count_perc_b_dem_gender_not_sure_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_not_sure")
+count_perc_df_b_dem_gender_not_sure <- rbind(count_perc_b_dem_gender_not_sure_PP,
+                       count_perc_b_dem_gender_not_sure_ABC,
+                       count_perc_b_dem_gender_not_sure_total)
+count_perc_df_b_dem_gender_not_sure
+
+count_perc_b_dem_gender_other_please_specify_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_other_please_specify")
+count_perc_b_dem_gender_other_please_specify_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_other_please_specify")
+count_perc_b_dem_gender_other_please_specify_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_other_please_specify")
+count_perc_df_b_dem_gender_other_please_specify <- rbind(count_perc_b_dem_gender_other_please_specify_PP,
+                       count_perc_b_dem_gender_other_please_specify_ABC,
+                       count_perc_b_dem_gender_other_please_specify_total)
+count_perc_df_b_dem_gender_other_please_specify
+
+count_perc_b_dem_gender_third_gender_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_third_gender")
+count_perc_b_dem_gender_third_gender_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_third_gender")
+count_perc_b_dem_gender_third_gender_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_third_gender")
+count_perc_df_b_dem_gender_third_gender <- rbind(count_perc_b_dem_gender_third_gender_PP,
+                       count_perc_b_dem_gender_third_gender_ABC,
+                       count_perc_b_dem_gender_third_gender_total)
+count_perc_df_b_dem_gender_third_gender
+
+count_perc_b_dem_gender_trans_female_trans_feminine_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_trans_female_trans_feminine")
+count_perc_b_dem_gender_trans_female_trans_feminine_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_trans_female_trans_feminine")
+count_perc_b_dem_gender_trans_female_trans_feminine_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_trans_female_trans_feminine")
+count_perc_df_b_dem_gender_trans_female_trans_feminine <- rbind(count_perc_b_dem_gender_trans_female_trans_feminine_PP,
+                       count_perc_b_dem_gender_trans_female_trans_feminine_ABC,
+                       count_perc_b_dem_gender_trans_female_trans_feminine_total)
+count_perc_df_b_dem_gender_trans_female_trans_feminine
+
+count_perc_b_dem_gender_trans_male_trans_masculine_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_trans_male_trans_masculine")
+count_perc_b_dem_gender_trans_male_trans_masculine_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_trans_male_trans_masculine")
+count_perc_b_dem_gender_trans_male_trans_masculine_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_trans_male_trans_masculine")
+count_perc_df_b_dem_gender_trans_male_trans_masculine <- rbind(count_perc_b_dem_gender_trans_male_trans_masculine_PP,
+                       count_perc_b_dem_gender_trans_male_trans_masculine_ABC,
+                       count_perc_b_dem_gender_trans_male_trans_masculine_total)
+count_perc_df_b_dem_gender_trans_male_trans_masculine
+
+count_perc_b_dem_gender_transgender_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_transgender")
+count_perc_b_dem_gender_transgender_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_transgender")
+count_perc_b_dem_gender_transgender_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_transgender")
+count_perc_df_b_dem_gender_transgender <- rbind(count_perc_b_dem_gender_transgender_PP,
+                       count_perc_b_dem_gender_transgender_ABC,
+                       count_perc_b_dem_gender_transgender_total)
+count_perc_df_b_dem_gender_transgender
+
+count_perc_b_dem_gender_female_to_male_transgender_ftm_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_female_to_male_transgender_ftm")
+count_perc_b_dem_gender_female_to_male_transgender_ftm_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_female_to_male_transgender_ftm")
+count_perc_b_dem_gender_female_to_male_transgender_ftm_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_female_to_male_transgender_ftm")
+count_perc_df_b_dem_gender_female_to_male_transgender_ftm <- rbind(count_perc_b_dem_gender_female_to_male_transgender_ftm_PP,
+                       count_perc_b_dem_gender_female_to_male_transgender_ftm_ABC,
+                       count_perc_b_dem_gender_female_to_male_transgender_ftm_total)
+count_perc_df_b_dem_gender_female_to_male_transgender_ftm
+
+count_perc_b_dem_gender_male_to_female_transgender_mtf_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_male_to_female_transgender_mtf")
+count_perc_b_dem_gender_male_to_female_transgender_mtf_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_male_to_female_transgender_mtf")
+count_perc_b_dem_gender_male_to_female_transgender_mtf_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_male_to_female_transgender_mtf")
+count_perc_df_b_dem_gender_male_to_female_transgender_mtf <- rbind(count_perc_b_dem_gender_male_to_female_transgender_mtf_PP,
+                       count_perc_b_dem_gender_male_to_female_transgender_mtf_ABC,
+                       count_perc_b_dem_gender_male_to_female_transgender_mtf_total)
+count_perc_df_b_dem_gender_male_to_female_transgender_mtf
+
+count_perc_b_dem_gender_two_spirited_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_two_spirited")
+count_perc_b_dem_gender_two_spirited_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_two_spirited")
+count_perc_b_dem_gender_two_spirited_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_two_spirited")
+count_perc_df_b_dem_gender_two_spirited <- rbind(count_perc_b_dem_gender_two_spirited_PP,
+                       count_perc_b_dem_gender_two_spirited_ABC,
+                       count_perc_b_dem_gender_two_spirited_total)
+count_perc_df_b_dem_gender_two_spirited
+
+count_perc_b_dem_gender_woman_girl_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_gender_woman_girl")
+count_perc_b_dem_gender_woman_girl_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_gender_woman_girl")
+count_perc_b_dem_gender_woman_girl_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_gender_woman_girl")
+count_perc_df_b_dem_gender_woman_girl <- rbind(count_perc_b_dem_gender_woman_girl_PP,
+                       count_perc_b_dem_gender_woman_girl_ABC,
+                       count_perc_b_dem_gender_woman_girl_total)
+count_perc_df_b_dem_gender_woman_girl
+
+# race/ethnicity
+
+count_perc_b_dem_race_american_indian_or_alaska_native_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_race_american_indian_or_alaska_native")
+count_perc_b_dem_race_american_indian_or_alaska_native_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_race_american_indian_or_alaska_native")
+count_perc_b_dem_race_american_indian_or_alaska_native_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_race_american_indian_or_alaska_native")
+count_perc_df_b_dem_race_american_indian_or_alaska_native <- rbind(count_perc_b_dem_race_american_indian_or_alaska_native_PP,
+                       count_perc_b_dem_race_american_indian_or_alaska_native_ABC,
+                       count_perc_b_dem_race_american_indian_or_alaska_native_total)
+count_perc_df_b_dem_race_american_indian_or_alaska_native
+
+count_perc_b_dem_race_asian_including_asian_desi_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_race_asian_including_asian_desi")
+count_perc_b_dem_race_asian_including_asian_desi_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_race_asian_including_asian_desi")
+count_perc_b_dem_race_asian_including_asian_desi_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_race_asian_including_asian_desi")
+count_perc_df_b_dem_race_asian_including_asian_desi <- rbind(count_perc_b_dem_race_asian_including_asian_desi_PP,
+                       count_perc_b_dem_race_asian_including_asian_desi_ABC,
+                       count_perc_b_dem_race_asian_including_asian_desi_total)
+count_perc_df_b_dem_race_asian_including_asian_desi
+
+count_perc_b_dem_race_black_african_american_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_race_black_african_american")
+count_perc_b_dem_race_black_african_american_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_race_black_african_american")
+count_perc_b_dem_race_black_african_american_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_race_black_african_american")
+count_perc_df_b_dem_race_black_african_american <- rbind(count_perc_b_dem_race_black_african_american_PP,
+                       count_perc_b_dem_race_black_african_american_ABC,
+                       count_perc_b_dem_race_black_african_american_total)
+count_perc_df_b_dem_race_black_african_american
+
+count_perc_b_dem_race_hispanic_latinx_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_race_hispanic_latinx")
+count_perc_b_dem_race_hispanic_latinx_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_race_hispanic_latinx")
+count_perc_b_dem_race_hispanic_latinx_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_race_hispanic_latinx")
+count_perc_df_b_dem_race_hispanic_latinx <- rbind(count_perc_b_dem_race_hispanic_latinx_PP,
+                       count_perc_b_dem_race_hispanic_latinx_ABC,
+                       count_perc_b_dem_race_hispanic_latinx_total)
+count_perc_df_b_dem_race_hispanic_latinx
+
+count_perc_b_dem_race_native_hawaiian_or_other_pacific_islander_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_race_native_hawaiian_or_other_pacific_islander")
+count_perc_b_dem_race_native_hawaiian_or_other_pacific_islander_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_race_native_hawaiian_or_other_pacific_islander")
+count_perc_b_dem_race_native_hawaiian_or_other_pacific_islander_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_race_native_hawaiian_or_other_pacific_islander")
+count_perc_df_b_dem_race_native_hawaiian_or_other_pacific_islander <- rbind(count_perc_b_dem_race_native_hawaiian_or_other_pacific_islander_PP,
+                       count_perc_b_dem_race_native_hawaiian_or_other_pacific_islander_ABC,
+                       count_perc_b_dem_race_native_hawaiian_or_other_pacific_islander_total)
+count_perc_df_b_dem_race_native_hawaiian_or_other_pacific_islander
+
+count_perc_b_dem_race_other_specify_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_race_other_specify")
+count_perc_b_dem_race_other_specify_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_race_other_specify")
+count_perc_b_dem_race_other_specify_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_race_other_specify")
+count_perc_df_b_dem_race_other_specify <- rbind(count_perc_b_dem_race_other_specify_PP,
+                       count_perc_b_dem_race_other_specify_ABC,
+                       count_perc_b_dem_race_other_specify_total)
+count_perc_df_b_dem_race_other_specify
+
+count_perc_b_dem_race_prefer_not_to_answer_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_race_prefer_not_to_answer")
+count_perc_b_dem_race_prefer_not_to_answer_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_race_prefer_not_to_answer")
+count_perc_b_dem_race_prefer_not_to_answer_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_race_prefer_not_to_answer")
+count_perc_df_b_dem_race_prefer_not_to_answer <- rbind(count_perc_b_dem_race_prefer_not_to_answer_PP,
+                       count_perc_b_dem_race_prefer_not_to_answer_ABC,
+                       count_perc_b_dem_race_prefer_not_to_answer_total)
+count_perc_df_b_dem_race_prefer_not_to_answer
+
+count_perc_b_dem_race_white_caucasian_non_hispanic_includes_middle_eastern_PP <- get_count_perc(cope_ca_data_nonimputed_PP,  "b_dem_race_white_caucasian_non_hispanic_includes_middle_eastern")
+count_perc_b_dem_race_white_caucasian_non_hispanic_includes_middle_eastern_ABC <- get_count_perc(cope_ca_data_nonimputed_ABC, "b_dem_race_white_caucasian_non_hispanic_includes_middle_eastern")
+count_perc_b_dem_race_white_caucasian_non_hispanic_includes_middle_eastern_total <- get_count_perc(cope_ca_data_nonimputed,     "b_dem_race_white_caucasian_non_hispanic_includes_middle_eastern")
+count_perc_df_b_dem_race_white_caucasian_non_hispanic_includes_middle_eastern <- rbind(count_perc_b_dem_race_white_caucasian_non_hispanic_includes_middle_eastern_PP,
+                       count_perc_b_dem_race_white_caucasian_non_hispanic_includes_middle_eastern_ABC,
+                       count_perc_b_dem_race_white_caucasian_non_hispanic_includes_middle_eastern_total)
+count_perc_df_b_dem_race_white_caucasian_non_hispanic_includes_middle_eastern
+
+# sexual orientation
+
+cbind(Frequency = table(cope_ca_data_nonimputed_PP$b_dem_orientation), Percentage = round((prop.table(table(cope_ca_data_nonimputed_PP$b_dem_orientation))*100), 2))
+
+cbind(Frequency = table(cope_ca_data_nonimputed_ABC$b_dem_orientation), Percentage = round((prop.table(table(cope_ca_data_nonimputed_ABC$b_dem_orientation))*100), 2))
+
+cbind(Frequency = table(cope_ca_data_nonimputed$b_dem_orientation), Percentage = round((prop.table(table(cope_ca_data_nonimputed$b_dem_orientation))*100), 2))
+
+# grade
+
+cbind(Frequency = table(cope_ca_data_nonimputed_PP$b_dem_grade), Percentage = round((prop.table(table(cope_ca_data_nonimputed_PP$b_dem_grade))*100), 2))
+
+cbind(Frequency = table(cope_ca_data_nonimputed_ABC$b_dem_grade), Percentage = round((prop.table(table(cope_ca_data_nonimputed_ABC$b_dem_grade))*100), 2))
+
+cbind(Frequency = table(cope_ca_data_nonimputed$b_dem_grade), Percentage = round((prop.table(table(cope_ca_data_nonimputed$b_dem_grade))*100), 2))
+```
+
 
 # Regression assumptions (Nonimputed)
 
