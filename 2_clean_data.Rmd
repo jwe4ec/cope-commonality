@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 ```{r setup}
 # Use R 4.4.0
 
@@ -10,8 +15,8 @@ meta.groundhog(groundhog_date)
 pkgs_cleaning <- c("tidyverse", "missForest", "forcats")
 groundhog.library(pkgs_cleaning, groundhog_date)
 
-#Read in data
-cope_full_data <- readRDS("cleaned_cope_data_randomized.rds")
+#Read in source data (downloaded from main COPE OSF project https://osf.io/8mk6x on 2026-06-26)
+cope_full_data <- readRDS(file.path("data", "source", "cleaned_cope_data_randomized_rev1.rds"))
 ```
 
 ```{r data cleaning}
@@ -57,6 +62,10 @@ cope_ca_ssi_completers <- cope_ca_ssi_completers %>%
 #using the resulting imputed data and found similar results as we did when we reran analyses on complete 
 #cases. Given limitations of "missForest()", we ultimately decided not to use it (and used complete cases 
 #instead). Thus, the following code related to "missForest" is commented out.
+# - Note as of 2026-06-26: The imputation was done on an "cope_ca_ssi_completers" object based on a prior
+#   version of source data (downloaded from the main COPE OSF project https://osf.io/8mk6x in or before 2023).
+#   Given that a demographics column is different in the "cope_ca_ssi_completers" object based on the current
+#   (vs. the prior) source data, the imputation code, data, and results below may not be fully reproducible.
 
 #Change numeric-coded and integer-coded categorical variables into factors and make cope_ca_ssi_completers 
 #a data.frame for "missForest" to work
@@ -101,14 +110,17 @@ cope_ca_data_nonimputed <- cope_ca_ssi_completers %>%
 #885 observations
 
 #Export as .csv
-write.csv(cope_ca_data_nonimputed, file='cope_ca_data_nonimputed.csv')
+data_processed_path <- file.path("data", "processed")
+dir.create(data_processed_path)
+
+write.csv(cope_ca_data_nonimputed, file.path(data_processed_path, "cope_ca_data_nonimputed.csv"))
 ```
 
 ```{r pull session info}
 session_info_path <- file.path("session_info")
 dir.create(session_info_path)
 
-sink(file.path(session_info_path, "2025.08.25_sessionInfo_for_cleaning_script.txt"))
+sink(file.path(session_info_path, "2026.06.26_sessionInfo_for_cleaning_script.txt"))
 sessionInfo()
 sink()
 ```

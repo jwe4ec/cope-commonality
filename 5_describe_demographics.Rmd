@@ -7,7 +7,7 @@
 source("0_define_functions.R")
 
 #Read in data
-cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed.csv")
+cope_ca_data_nonimputed <- read.csv(file.path("data", "processed", "cope_ca_data_nonimputed.csv"))
 
 #Subset data according to intervention condition
 cope_ca_data_nonimputed_PP <- subset(cope_ca_data_nonimputed, condition == 1)

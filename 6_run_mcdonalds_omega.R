@@ -15,7 +15,7 @@ set.seed(1234)
 
 # Read in data
 
-cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed.csv")
+cope_ca_data_nonimputed <- read.csv(file.path("data", "processed", "cope_ca_data_nonimputed.csv"))
 
 # ---------------------------------------------------------------------------- #
 # Subset data such that each measure at baseline has its own dataset for each condition ----

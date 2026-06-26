@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 ```{r set up}
 # Use R 4.4.0
 
@@ -11,7 +16,7 @@ pkgs_pca <- c("tidyverse", "corrplot")
 groundhog.library(pkgs_pca, groundhog_date)
 
 #Read in data
-cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed.csv")
+cope_ca_data_nonimputed <- read.csv(file.path("data", "processed", "cope_ca_data_nonimputed.csv"))
 ```
 
 ```{r PFS correlation matrix}

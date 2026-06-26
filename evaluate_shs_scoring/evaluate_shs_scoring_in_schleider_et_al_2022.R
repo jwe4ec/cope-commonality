@@ -17,9 +17,10 @@ meta.groundhog(groundhog_date)
 
 groundhog.library(c("dplyr", "ggplot2", "ggrepel", "cowplot"), groundhog_date)
 
-# Load data from Schleider et al. (2022) OSF project (https://osf.io/8mk6x )
+# Load source data from Schleider et al. (2022)
+# - Downloaded from main COPE OSF project https://osf.io/8mk6x on 2026-06-26
 
-dat <- readRDS("cleaned_cope_data_randomized.rds")
+dat <- readRDS(file.path("data", "source", "cleaned_cope_data_randomized_rev1.rds"))
 
 # ---------------------------------------------------------------------------- #
 # Confirm scoring ----

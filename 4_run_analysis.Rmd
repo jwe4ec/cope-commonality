@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 # Loading Cleaned Data
 
 ```{r setup, echo=TRUE, message=FALSE, warning=FALSE}
@@ -17,11 +22,10 @@ groundhog.library(pkgs_analysis, groundhog_date)
 source("0_define_functions.R")
 
 #Read in data from data cleaning and pre-processing code (to avoid re-running data prep every time)
-cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed.csv")
+cope_ca_data_nonimputed <- read.csv(file.path("data", "processed", "cope_ca_data_nonimputed.csv"))
 
 set.seed(6804275)
 ```
-
 
 # Creating Difference Scores
 
