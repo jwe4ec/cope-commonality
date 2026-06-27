@@ -32,7 +32,7 @@ Data and results are stored on this repo's corresponding [OSF project](https://o
 |
 ├── data/   # Data (stored on OSF)
 |   ├── source/cleaned_cope_data_randomized_rev1.rds
-|   └── processed/cope_ca_data_nonimputed.csv
+|   └── processed/cope_ca_data_nonimputed_rev1.csv
 |
 ├── results/   # Main results (stored on OSF)
 |   ├── omega/

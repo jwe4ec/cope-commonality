@@ -78,8 +78,8 @@ str(cope_ca_ssi_completers)
 set.seed(12345) #use the same seed number each time to make the code reproducible (the seed number is just the starting point used in the generation of a sequence of random numbers in the random forest)
 # - Note as of 2026-06-26: The imputation was done on an "cope_ca_ssi_completers" object based on a prior
 #   version of source data (downloaded from the main COPE OSF project https://osf.io/8mk6x in or before 2023).
-#   Given that a demographics column is different in the "cope_ca_ssi_completers" object based on the current
-#   (vs. the prior) source data, the imputation code, data, and results below may not be fully reproducible.
+#   Given that a demographics column is different in the "cope_ca_ssi_completers_rev1" object based on the
+#   current source data, the imputation code, data, and results below may not be fully reproducible.
 
 cope_ca_data_imputed <- missForest(cope_ca_ssi_completers)
 #NRMSE = 0.25. This is the error term for the continuous variables.

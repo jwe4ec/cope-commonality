@@ -15,41 +15,41 @@ set.seed(1234)
 
 # Read in data
 
-cope_ca_data_nonimputed <- read.csv(file.path("data", "processed", "cope_ca_data_nonimputed.csv"))
+cope_ca_data_nonimputed_rev1 <- read.csv(file.path("data", "processed", "cope_ca_data_nonimputed_rev1.csv"))
 
 # ---------------------------------------------------------------------------- #
 # Subset data such that each measure at baseline has its own dataset for each condition ----
 # ---------------------------------------------------------------------------- #
 
-b_cdi_PP_dat <- cope_ca_data_nonimputed %>% 
+b_cdi_PP_dat <- cope_ca_data_nonimputed_rev1 %>% 
   filter(condition == 1) %>% 
   select(b_cdi_1:b_cdi_12) 
 
-b_cdi_ABC_dat <- cope_ca_data_nonimputed %>% 
+b_cdi_ABC_dat <- cope_ca_data_nonimputed_rev1 %>% 
   filter(condition == 2) %>% 
   select(b_cdi_1:b_cdi_12)
 
-b_bhs_PP_dat <- cope_ca_data_nonimputed %>% 
+b_bhs_PP_dat <- cope_ca_data_nonimputed_rev1 %>% 
   filter(condition == 1) %>% 
   select(b_bhs_1:b_bhs_4)
 
-b_bhs_ABC_dat <- cope_ca_data_nonimputed %>% 
+b_bhs_ABC_dat <- cope_ca_data_nonimputed_rev1 %>% 
   filter(condition == 2) %>% 
   select(b_bhs_1:b_bhs_4)
 
-b_shs_PP_dat <- cope_ca_data_nonimputed %>% 
+b_shs_PP_dat <- cope_ca_data_nonimputed_rev1 %>% 
   filter(condition == 1) %>% 
   select(b_shs_1, b_shs_3, b_shs_5)
 
-b_shs_ABC_dat <- cope_ca_data_nonimputed %>% 
+b_shs_ABC_dat <- cope_ca_data_nonimputed_rev1 %>% 
   filter(condition == 2) %>% 
   select(b_shs_1, b_shs_3, b_shs_5)
 
-b_pfs_PP_dat <- cope_ca_data_nonimputed %>% 
+b_pfs_PP_dat <- cope_ca_data_nonimputed_rev1 %>% 
   filter(condition == 1) %>% 
   select(pi_pfs_1:pi_pfs_7)
 
-b_pfs_ABC_dat <- cope_ca_data_nonimputed %>% 
+b_pfs_ABC_dat <- cope_ca_data_nonimputed_rev1 %>% 
   filter(condition == 2) %>% 
   select(pi_pfs_1:pi_pfs_7)
 
