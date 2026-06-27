@@ -45,6 +45,10 @@ setwd("/Volumes/jslab/Commonality Analysis") #Arielle
 
 
 #Read in data from data cleaning and pre-processing code (to avoid re-running data prep every time)
+# - Note as of 2026-06-26: The imputation yielding "cope_ca_data_imputed.csv" was done based on a prior
+#   version of source data (see comment in "clean_data.Rmd"). Thus, "cope_ca_data_imputed.csv" and the
+#   results based on it below at the time the script was run may not be fully reproducible if a new
+#   version of "cope_ca_data_imputed.csv" were to be created based on the current source data.
 
 cope_ca_data_imputed <- read.csv("cope_ca_data_imputed.csv")
 cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed.csv")

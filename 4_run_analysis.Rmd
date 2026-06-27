@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 # Loading Cleaned Data
 
 ```{r setup, echo=TRUE, message=FALSE, warning=FALSE}
@@ -17,11 +22,10 @@ groundhog.library(pkgs_analysis, groundhog_date)
 source("0_define_functions.R")
 
 #Read in data from data cleaning and pre-processing code (to avoid re-running data prep every time)
-cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed.csv")
+cope_ca_data_nonimputed_rev1 <- read.csv(file.path("data", "processed", "cope_ca_data_nonimputed_rev1.csv"))
 
 set.seed(6804275)
 ```
-
 
 # Creating Difference Scores
 
@@ -29,7 +33,7 @@ set.seed(6804275)
 
 ```{r}
 #Creating difference scores for depression (pre-SSI to 3M)
-cope_ca_data_nonimputed <- cope_ca_data_nonimputed %>% 
+cope_ca_data_nonimputed_rev1 <- cope_ca_data_nonimputed_rev1 %>% 
   mutate(difference_score_cdi = f1_cdi_sum - b_cdi_sum)
 ```
 
@@ -37,11 +41,11 @@ cope_ca_data_nonimputed <- cope_ca_data_nonimputed %>%
 
 ```{r}
 #Creating difference scores for hopelessness (pre-SSI to post-SSI) 
-cope_ca_data_nonimputed <- cope_ca_data_nonimputed %>% 
+cope_ca_data_nonimputed_rev1 <- cope_ca_data_nonimputed_rev1 %>% 
   mutate(difference_score_bhs = pi_bhs_mean - b_bhs_mean)
 
 #Creating difference scores for agency (pre-SSI to post-SSI) in both the imputed and non-imputed datasets 
-cope_ca_data_nonimputed <- cope_ca_data_nonimputed %>% 
+cope_ca_data_nonimputed_rev1 <- cope_ca_data_nonimputed_rev1 %>% 
   mutate(difference_score_shs = pi_shs_mean - b_shs_mean)
 ```
 
@@ -51,19 +55,19 @@ cope_ca_data_nonimputed <- cope_ca_data_nonimputed %>%
 
 # Subset data based on condition
 
-cope_ca_data_nonimputed_PP <- subset(cope_ca_data_nonimputed, condition == 1)
-cope_ca_data_nonimputed_ABC <- subset(cope_ca_data_nonimputed, condition == 2)
+cope_ca_data_nonimputed_rev1_PP <- subset(cope_ca_data_nonimputed_rev1, condition == 1)
+cope_ca_data_nonimputed_rev1_ABC <- subset(cope_ca_data_nonimputed_rev1, condition == 2)
 
 # Run full regression models
 
 ## Project Personality, Nonimputed
 
-cdi_PP_nonimputed <- lm(difference_score_cdi ~ difference_score_bhs + difference_score_shs + pi_pfs_mean, data = cope_ca_data_nonimputed_PP)
+cdi_PP_nonimputed <- lm(difference_score_cdi ~ difference_score_bhs + difference_score_shs + pi_pfs_mean, data = cope_ca_data_nonimputed_rev1_PP)
 summary(cdi_PP_nonimputed)
 
 ## ABC Project, Nonimputed
 
-cdi_ABC_nonimputed <- lm(difference_score_cdi ~ difference_score_bhs + difference_score_shs + pi_pfs_mean, data = cope_ca_data_nonimputed_ABC)
+cdi_ABC_nonimputed <- lm(difference_score_cdi ~ difference_score_bhs + difference_score_shs + pi_pfs_mean, data = cope_ca_data_nonimputed_rev1_ABC)
 summary(cdi_ABC_nonimputed)
 ```
 Note: We decided to use mean for the PFS instead of component scores.
@@ -85,7 +89,7 @@ regOut_cdi_PP <- calc.yhat(cdi_PP_nonimputed, prec = 6)
 
 set.seed(6804275)
 if (!exists("boot.regOut_cdi_PP")) {
-boot.regOut_cdi_PP <- boot(cope_ca_data_nonimputed_PP, boot.yhat.prec, 1000, lmOut = cdi_PP_nonimputed, regrout0 = regOut_cdi_PP, prec = 6)
+boot.regOut_cdi_PP <- boot(cope_ca_data_nonimputed_rev1_PP, boot.yhat.prec, 1000, lmOut = cdi_PP_nonimputed, regrout0 = regOut_cdi_PP, prec = 6)
 }
 boot.regOut_cdi_PP_result <- booteval.yhat(regOut_cdi_PP, boot.regOut_cdi_PP, bty="perc", prec = 6)
 print(boot.regOut_cdi_PP_result$combCIaps) # Get commonality coefficients (and bootstrap CIs) for unique and common effects
@@ -99,9 +103,9 @@ pfs_formula <- difference_score_cdi ~ pi_pfs_mean
 
 # Run custom function to bootstrap beta and R^2 for each total effect
 
-(tot_eff_bhs_PP <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_PP, beta_rsq, bhs_formula, 1000, 6))
-(tot_eff_shs_PP <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_PP, beta_rsq, shs_formula, 1000, 6))
-(tot_eff_pfs_PP <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_PP, beta_rsq, pfs_formula, 1000, 6))
+(tot_eff_bhs_PP <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_rev1_PP, beta_rsq, bhs_formula, 1000, 6))
+(tot_eff_shs_PP <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_rev1_PP, beta_rsq, shs_formula, 1000, 6))
+(tot_eff_pfs_PP <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_rev1_PP, beta_rsq, pfs_formula, 1000, 6))
 
 # Project ABC, Depression
 
@@ -109,7 +113,7 @@ regOut_cdi_ABC <- calc.yhat(cdi_ABC_nonimputed, prec = 6)
 
 set.seed(6804275)
 if (!exists("boot.regOut_cdi_ABC")) {
-boot.regOut_cdi_ABC <- boot(cope_ca_data_nonimputed_ABC, boot.yhat.prec, 1000, lmOut = cdi_ABC_nonimputed, regrout0 = regOut_cdi_ABC, prec = 6)
+boot.regOut_cdi_ABC <- boot(cope_ca_data_nonimputed_rev1_ABC, boot.yhat.prec, 1000, lmOut = cdi_ABC_nonimputed, regrout0 = regOut_cdi_ABC, prec = 6)
 }
 boot.regOut_cdi_ABC_result <- booteval.yhat(regOut_cdi_ABC, boot.regOut_cdi_ABC, bty = "perc", prec = 6)
 print(boot.regOut_cdi_ABC_result$combCIaps)
@@ -117,9 +121,9 @@ print(boot.regOut_cdi_ABC_result$combCIpm["b"])
 
 #We use the same formulas as above
 
-(tot_eff_bhs_ABC <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_ABC, beta_rsq, bhs_formula, 1000, 6))
-(tot_eff_shs_ABC <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_ABC, beta_rsq, shs_formula, 1000, 6))
-(tot_eff_pfs_ABC <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_ABC, beta_rsq, pfs_formula, 1000, 6))
+(tot_eff_bhs_ABC <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_rev1_ABC, beta_rsq, bhs_formula, 1000, 6))
+(tot_eff_shs_ABC <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_rev1_ABC, beta_rsq, shs_formula, 1000, 6))
+(tot_eff_pfs_ABC <- bootstrap_beta_rsq(6804275, cope_ca_data_nonimputed_rev1_ABC, beta_rsq, pfs_formula, 1000, 6))
 ```
 
 # Multicollinearity
@@ -134,7 +138,7 @@ sqrt(vif(cdi_ABC_nonimputed))
 
 print(
   psych::corr.test(
-    cope_ca_data_nonimputed_PP[, c("difference_score_bhs", "difference_score_shs", "pi_pfs_mean")],
+    cope_ca_data_nonimputed_rev1_PP[, c("difference_score_bhs", "difference_score_shs", "pi_pfs_mean")],
     use = "complete",
     method = "pearson"
   ),
@@ -143,7 +147,7 @@ print(
 
 print(
   psych::corr.test(
-    cope_ca_data_nonimputed_ABC[, c("difference_score_bhs", "difference_score_shs", "pi_pfs_mean")],
+    cope_ca_data_nonimputed_rev1_ABC[, c("difference_score_bhs", "difference_score_shs", "pi_pfs_mean")],
     use = "complete",
     method = "pearson"
   ),
@@ -197,9 +201,9 @@ plot_res_over_rows(res, c(200, 300))
 par(mfrow = c(1,1))
 
 ## Rerun test for PP model fit to data with randomly sorted rows
-cope_ca_data_nonimputed_PP_rand <- cope_ca_data_nonimputed_PP[sample(nrow(cope_ca_data_nonimputed_PP)), ]
+cope_ca_data_nonimputed_rev1_PP_rand <- cope_ca_data_nonimputed_rev1_PP[sample(nrow(cope_ca_data_nonimputed_rev1_PP)), ]
 
-cdi_PP_nonimputed_rand <- lm(formula(cdi_PP_nonimputed), cope_ca_data_nonimputed_PP_rand)
+cdi_PP_nonimputed_rand <- lm(formula(cdi_PP_nonimputed), cope_ca_data_nonimputed_rev1_PP_rand)
 all.equal(summary(cdi_PP_nonimputed)$coefficients, 
           summary(cdi_PP_nonimputed_rand)$coefficients) # Same model summary
 
@@ -295,17 +299,17 @@ dir.create(tot_eff_p_dir)
 
 png(file.path(tot_eff_p_dir, "total_effect_plots_PP.png"), 6.5, 6.5, "in", res = 300)
 par(mfrow = c(2, 2))
-plot_total_effect(cope_ca_data_nonimputed_PP, "difference_score_shs", tot_eff_shs_PP, "topright")
-plot_total_effect(cope_ca_data_nonimputed_PP, "difference_score_bhs", tot_eff_bhs_PP, "topright")
-plot_total_effect(cope_ca_data_nonimputed_PP, "pi_pfs_mean", tot_eff_pfs_PP, "topleft")
+plot_total_effect(cope_ca_data_nonimputed_rev1_PP, "difference_score_shs", tot_eff_shs_PP, "topright")
+plot_total_effect(cope_ca_data_nonimputed_rev1_PP, "difference_score_bhs", tot_eff_bhs_PP, "topright")
+plot_total_effect(cope_ca_data_nonimputed_rev1_PP, "pi_pfs_mean", tot_eff_pfs_PP, "topleft")
 par(mfrow = c(1, 1))
 dev.off()
 
 png(file.path(tot_eff_p_dir, "total_effect_plots_ABC.png"), 6.5, 6.5, "in", res = 300)
 par(mfrow = c(2, 2))
-plot_total_effect(cope_ca_data_nonimputed_ABC, "difference_score_shs", tot_eff_shs_ABC, "topright")
-plot_total_effect(cope_ca_data_nonimputed_ABC, "difference_score_bhs", tot_eff_bhs_ABC, "topright")
-plot_total_effect(cope_ca_data_nonimputed_ABC, "pi_pfs_mean", tot_eff_pfs_ABC, "topleft")
+plot_total_effect(cope_ca_data_nonimputed_rev1_ABC, "difference_score_shs", tot_eff_shs_ABC, "topright")
+plot_total_effect(cope_ca_data_nonimputed_rev1_ABC, "difference_score_bhs", tot_eff_bhs_ABC, "topright")
+plot_total_effect(cope_ca_data_nonimputed_rev1_ABC, "pi_pfs_mean", tot_eff_pfs_ABC, "topleft")
 par(mfrow = c(1, 1))
 dev.off()
 ```
