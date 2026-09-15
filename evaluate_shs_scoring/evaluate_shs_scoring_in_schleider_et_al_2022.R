@@ -15,12 +15,12 @@ library(groundhog)
 groundhog_date <- "2025-04-10"
 meta.groundhog(groundhog_date)
 
-groundhog.library(c("dplyr", "ggplot2", "ggrepel", "cowplot"), groundhog_date)
+groundhog.library(c("dplyr", "ggplot2", "ggrepel", "cowplot", "here"), groundhog_date)
 
 # Load source data from Schleider et al. (2022)
 # - Downloaded from main COPE OSF project https://osf.io/8mk6x on 2026-06-26
 
-dat <- readRDS(file.path("data", "source", "cleaned_cope_data_randomized_rev1.rds"))
+dat <- readRDS(here("data", "source", "cleaned_cope_data_randomized_rev1.rds"))
 
 # ---------------------------------------------------------------------------- #
 # Confirm scoring ----
@@ -221,7 +221,7 @@ p_all <- plot_grid(p_a, p_b, p_c, p_d, labels = LETTERS[1:4])
 
 ## Export plot grid to PDF
 
-evaluate_shs_scoring_results_dir <- file.path("evaluate_shs_scoring", "results")
+evaluate_shs_scoring_results_dir <- here("evaluate_shs_scoring", "results")
 dir.create(evaluate_shs_scoring_results_dir)
 
 ggsave2(file.path(evaluate_shs_scoring_results_dir, "evaluate_shs_scoring_in_schleider_et_al_2022_plots.pdf"),

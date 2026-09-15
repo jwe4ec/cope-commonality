@@ -1,13 +1,19 @@
 ```{r set up}
 # Use R 4.4.0
 
-#No packages required
+#Load required packages
+
+library(groundhog)
+groundhog_date <- "2025-04-10"
+meta.groundhog(groundhog_date)
+
+groundhog.library("here", groundhog_date)
 
 #Source custom functions
-source("0_define_functions.R")
+source(here("code", "0_define_functions.R"))
 
 #Read in data
-cope_ca_data_nonimputed_rev1 <- read.csv(file.path("data", "processed", "cope_ca_data_nonimputed_rev1.csv"))
+cope_ca_data_nonimputed_rev1 <- read.csv(here("data", "processed", "cope_ca_data_nonimputed_rev1.csv"))
 
 #Subset data according to intervention condition
 cope_ca_data_nonimputed_rev1_PP <- subset(cope_ca_data_nonimputed_rev1, condition == 1)
@@ -197,9 +203,9 @@ count_perc_df_b_dem_race
 # Sexual orientation
 
 ```{r}
-freq_PP    <- table(cope_ca_data_nonimputed_rev1_PP$b_dem_grade)
-freq_ABC   <- table(cope_ca_data_nonimputed_rev1_ABC$b_dem_grade)
-freq_total <- table(cope_ca_data_nonimputed_rev1$b_dem_grade)
+freq_PP    <- table(cope_ca_data_nonimputed_rev1_PP$b_dem_orientation)
+freq_ABC   <- table(cope_ca_data_nonimputed_rev1_ABC$b_dem_orientation)
+freq_total <- table(cope_ca_data_nonimputed_rev1$b_dem_orientation)
 
 cbind(Frequency = freq_PP,    Percentage = round(100 * prop.table(freq_PP), 2))
 cbind(Frequency = freq_ABC,   Percentage = round(100 * prop.table(freq_ABC), 2))
@@ -209,9 +215,9 @@ cbind(Frequency = freq_total, Percentage = round(100 * prop.table(freq_total), 2
 # Grade
 
 ```{r}
-freq_PP    <- table(cope_ca_data_nonimputed_rev1_PP$b_dem_orientation)
-freq_ABC   <- table(cope_ca_data_nonimputed_rev1_ABC$b_dem_orientation)
-freq_total <- table(cope_ca_data_nonimputed_rev1$b_dem_orientation)
+freq_PP    <- table(cope_ca_data_nonimputed_rev1_PP$b_dem_grade)
+freq_ABC   <- table(cope_ca_data_nonimputed_rev1_ABC$b_dem_grade)
+freq_total <- table(cope_ca_data_nonimputed_rev1$b_dem_grade)
 
 cbind(Frequency = freq_PP,    Percentage = round(100 * prop.table(freq_PP), 2))
 cbind(Frequency = freq_ABC,   Percentage = round(100 * prop.table(freq_ABC), 2))

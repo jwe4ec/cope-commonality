@@ -18,14 +18,15 @@ Data and results are stored on this repo's corresponding [OSF project](https://o
 ├── .gitignore   # Used to prevent committing data and results to GitHub
 ├── README.md
 |
-├── 0_define_functions.R   # Main code
-├── 1_install_groundhog.R
-├── 2_clean_data.Rmd
-├── 3_run_PCA.Rmd
-├── 4_run_analysis.Rmd
-├── 5_describe_demographics.Rmd
-├── 6_run_mcdonalds_omega.R
-├── 7_extract_omega_results.R
+├── code/   # Main code
+|   ├── 0_define_functions.R
+|   ├── 1_install_groundhog.R
+|   ├── 2_clean_data.Rmd
+|   ├── 3_run_PCA.Rmd
+|   ├── 4_run_analysis.Rmd
+|   ├── 5_describe_demographics.Rmd
+|   ├── 6_run_mcdonalds_omega.R
+|   └── 7_extract_omega_results.R
 |
 ├── session_info/   # Session info (from "clean_data.Rmd" and "run_anlaysis.Rmd")
 ├── archive/   # Old cleaning and analysis code
