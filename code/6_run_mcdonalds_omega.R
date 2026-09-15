@@ -10,12 +10,12 @@ library(groundhog)
 groundhog_date <- "2025-04-10"
 meta.groundhog(groundhog_date)
 
-groundhog.library(c("future", "future.apply", "tidyverse", "tictoc"), groundhog_date)
+groundhog.library(c("future", "future.apply", "tidyverse", "tictoc", "here"), groundhog_date)
 set.seed(1234)
 
 # Read in data
 
-cope_ca_data_nonimputed_rev1 <- read.csv(file.path("data", "processed", "cope_ca_data_nonimputed_rev1.csv"))
+cope_ca_data_nonimputed_rev1 <- read.csv(here("data", "processed", "cope_ca_data_nonimputed_rev1.csv"))
 
 # ---------------------------------------------------------------------------- #
 # Subset data such that each measure at baseline has its own dataset for each condition ----
@@ -74,7 +74,7 @@ plan(multisession)
 
 # Create folders for omega results and logs
 
-omega_path <- file.path("results", "omega")
+omega_path <- here("results", "omega")
 omega_log_path <- file.path(omega_path, "logs")
 
 dir.create(omega_log_path, recursive = TRUE)

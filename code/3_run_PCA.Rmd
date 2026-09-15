@@ -12,11 +12,11 @@ library(groundhog)
 groundhog_date <- "2025-04-10"
 meta.groundhog(groundhog_date)
 
-pkgs_pca <- c("tidyverse", "corrplot")
+pkgs_pca <- c("tidyverse", "corrplot", "here")
 groundhog.library(pkgs_pca, groundhog_date)
 
 #Read in data
-cope_ca_data_nonimputed_rev1 <- read.csv(file.path("data", "processed", "cope_ca_data_nonimputed_rev1.csv"))
+cope_ca_data_nonimputed_rev1 <- read.csv(here("data", "processed", "cope_ca_data_nonimputed_rev1.csv"))
 ```
 
 ```{r PFS correlation matrix}

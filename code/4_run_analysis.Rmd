@@ -15,14 +15,14 @@ groundhog_date <- "2025-04-10"
 meta.groundhog(groundhog_date)
 
 pkgs_analysis <- c("tidyverse", "yhat", "boot", "car", "lmtest", "olsrr", "psych",
-                   "performance")
+                   "performance", "here")
 groundhog.library(pkgs_analysis, groundhog_date)
 
 #Source custom functions
-source("0_define_functions.R")
+source(here("code", "0_define_functions.R"))
 
 #Read in data from data cleaning and pre-processing code (to avoid re-running data prep every time)
-cope_ca_data_nonimputed_rev1 <- read.csv(file.path("data", "processed", "cope_ca_data_nonimputed_rev1.csv"))
+cope_ca_data_nonimputed_rev1 <- read.csv(here("data", "processed", "cope_ca_data_nonimputed_rev1.csv"))
 
 set.seed(6804275)
 ```
@@ -294,8 +294,8 @@ plot_total_effect <- function(dat, xvar, tot_eff, legend_position) {
 
 # Run function for PP and ABC and export plots to PNG
 
-tot_eff_p_dir <- file.path("results", "total_effect_plots")
-dir.create(tot_eff_p_dir)
+tot_eff_p_dir <- here("results", "total_effect_plots")
+dir.create(tot_eff_p_dir, recursive = TRUE)
 
 png(file.path(tot_eff_p_dir, "total_effect_plots_PP.png"), 6.5, 6.5, "in", res = 300)
 par(mfrow = c(2, 2))
@@ -315,7 +315,7 @@ dev.off()
 ```
 
 ```{r pull session info}
-sink(file.path("session_info", "2025.08.25_sessionInfo_for_analysis_script.txt"))
+sink(here("session_info", "2026.09.15_sessionInfo_for_analysis_script.txt"))
 sessionInfo()
 sink()
 ```
