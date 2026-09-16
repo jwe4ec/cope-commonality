@@ -1,6 +1,6 @@
 ---
 title: "Commonality Analysis Code_2"
-author: "Laura Jans and Arielle Smith"
+author: "MASKED and MASKED"
 date: "2023-07-25"
 output: html_document
 ---
@@ -41,7 +41,7 @@ library(stargazer)
 #Set working directory
 
 #setwd("Z:/Commonality Analysis") # Change based on computer mapping
-setwd("/Volumes/jslab/Commonality Analysis") #Arielle
+setwd("/Volumes/MASKED/Commonality Analysis") #MASKED
 
 
 #Read in data from data cleaning and pre-processing code (to avoid re-running data prep every time)

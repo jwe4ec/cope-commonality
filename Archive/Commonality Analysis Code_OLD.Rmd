@@ -1,6 +1,6 @@
 ---
-title: "COPE Commonality Analysis"
-author: "Arielle Smith and Laura Jans"
+title: "MASKED Commonality Analysis"
+author: "MASKED and MASKED"
 date: "2023-08-25"
 output: html_document
 ---
@@ -21,8 +21,8 @@ if(!require(psych)){install.packages('psych')}
 library(psych)
 
 #Set working directory
-setwd("/Volumes/jslab/Commonality Analysis") #Arielle
-#setwd("Z:/Commonality Analysis") #Laura
+setwd("/Volumes/MASKED/Commonality Analysis") #MASKED
+#setwd("Z:/Commonality Analysis") #MASKED
 
 #Read in data
 # - Note as of 2026-06-26: The source data loaded by this script are outdated
@@ -41,7 +41,7 @@ cope_ca_data <- cope_full_data %>%
 #Remove open-ended text variables (for demographics) because will not give missForest meaningful info
   select(-ends_with("_text"))
 
-#Includes the demographics, predictor variables, outcome variables, and the condition. Condition is just labeled 0, 1, and 2, but looking at the COPE baseline survey flow and parent study code, have gathered that:
+#Includes the demographics, predictor variables, outcome variables, and the condition. Condition is just labeled 0, 1, and 2, but looking at the MASKED baseline survey flow and parent study code, have gathered that:
 #0 = control (Sharing Feelings)
 #1 = intervention (Project Personality)
 #2 = intervention (ABC Project)
@@ -77,7 +77,7 @@ str(cope_ca_ssi_completers)
 ```{r data imputation}
 set.seed(12345) #use the same seed number each time to make the code reproducible (the seed number is just the starting point used in the generation of a sequence of random numbers in the random forest)
 # - Note as of 2026-06-26: The imputation was done on an "cope_ca_ssi_completers" object based on a prior
-#   version of source data (downloaded from the main COPE OSF project https://osf.io/8mk6x in or before 2023).
+#   version of source data (downloaded from the main MASKED OSF project [link MASKED] in or before 2023).
 #   Given that a demographics column is different in the "cope_ca_ssi_completers_rev1" object based on the
 #   current source data, the imputation code, data, and results below may not be fully reproducible.
 
@@ -114,5 +114,5 @@ cope_ca_data_nonimputed <- cope_ca_ssi_completers %>%
 #Export as .csv
 #write.csv(cope_ca_data_nonimputed,file='cope_ca_data_nonimputed.csv')
 
-#test Arielle
+#test MASKED
 ```

@@ -1,4 +1,4 @@
-# cope-commonality
+# MASKED-commonality
 Analysis code for manuscript "Unique and shared effects of single-session intervention 
 proximal outcomes on 3-month depression symptoms in adolescents: A commonality analysis"
 
@@ -11,7 +11,7 @@ requests that import code snapshots at key milestones from the old repo)
 
 Scripts are numbered in the order to be run
 
-Data and results are stored on this repo's corresponding [OSF project](https://osf.io/ftxr2)
+Data and results are stored on this repo's corresponding OSF project (link MASKED)
 
 ```plaintext
 .
@@ -39,12 +39,12 @@ Data and results are stored on this repo's corresponding [OSF project](https://o
 |   ├── omega/
 |   └── total_effect_plots/
 |
-└── evaluate_shs_scoring/   # Used to evaluate SHS scoring in main COPE paper
-    ├── evaluate_shs_scoring_in_schleider_et_al_2022.R
+└── evaluate_shs_scoring/   # Used to evaluate SHS scoring in main MASKED paper
+    ├── evaluate_shs_scoring_in_MASKED.R
     └── results/   # SHS scoring-specific results (stored on OSF)
 ```
 
 # Source Data
 
-Source data are from the [OSF project](https://osf.io/8mk6x) for the COPE study's 
-main outcomes paper ([Schleider et al., 2022](https://doi.org/gnq5rq))
+Source data are from the OSF project (link MASKED) for the MASKED study's 
+main outcomes paper (citation and DOI MASKED)

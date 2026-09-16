@@ -15,7 +15,7 @@ meta.groundhog(groundhog_date)
 pkgs_cleaning <- c("tidyverse", "missForest", "forcats", "here")
 groundhog.library(pkgs_cleaning, groundhog_date)
 
-#Read in source data (downloaded from main COPE OSF project https://osf.io/8mk6x on 2026-06-26)
+#Read in source data (downloaded from main MASKED OSF project [link MASKED] on 2026-06-26)
 cope_full_data_rev1 <- readRDS(here("data", "source", "cleaned_cope_data_randomized_rev1.rds"))
 ```
 
@@ -33,7 +33,7 @@ cope_ca_data_rev1 <- cope_full_data_rev1 %>%
 #Remove open-ended text variables (for demographics) because will not give missForest meaningful info
   select(-ends_with("_text"))
 
-#Includes the demographics, predictor variables, outcome variables, and the condition. Condition is just labeled 0, 1, and 2, but looking at the COPE baseline survey flow and parent study code, have gathered that:
+#Includes the demographics, predictor variables, outcome variables, and the condition. Condition is just labeled 0, 1, and 2, but looking at the MASKED baseline survey flow and parent study code, have gathered that:
 #0 = control (Sharing Feelings)
 #1 = intervention (Project Personality)
 #2 = intervention (ABC Project)
@@ -63,7 +63,7 @@ cope_ca_ssi_completers_rev1 <- cope_ca_ssi_completers_rev1 %>%
 #cases. Given limitations of "missForest()", we ultimately decided not to use it (and used complete cases 
 #instead). Thus, the following code related to "missForest" is commented out.
 # - Note as of 2026-06-26: The imputation was done on an "cope_ca_ssi_completers" object based on a prior
-#   version of source data (downloaded from the main COPE OSF project https://osf.io/8mk6x in or before 2023).
+#   version of source data (downloaded from the main MASKED OSF project [link MASKED] in or before 2023).
 #   Given that a demographics column is different in the "cope_ca_ssi_completers_rev1" object based on the
 #   current source data, the imputation code, data, and results below may not be fully reproducible.
 

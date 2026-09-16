@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------- #
-# Evaluate SHS Scoring in Schleider et al. (2022; https://doi.org/gnq5rq )
-# Author: Jeremy W. Eberle
+# Evaluate SHS Scoring in Main Outcomes Paper (citation and link MASKED)
+# Author: MASKED
 # ---------------------------------------------------------------------------- #
 
 # ---------------------------------------------------------------------------- #
@@ -17,8 +17,8 @@ meta.groundhog(groundhog_date)
 
 groundhog.library(c("dplyr", "ggplot2", "ggrepel", "cowplot", "here"), groundhog_date)
 
-# Load source data from Schleider et al. (2022)
-# - Downloaded from main COPE OSF project https://osf.io/8mk6x on 2026-06-26
+# Load source data from main outcomes paper (citation MASKED)
+# - Downloaded from main MASKED OSF project (link MASKED) on 2026-06-26
 
 dat <- readRDS(here("data", "source", "cleaned_cope_data_randomized_rev1.rds"))
 
@@ -65,7 +65,7 @@ b_shs_pathways_item_cols <- paste0("b_shs_", c(1, 3, 5))
 dat$b_shs_pathways_mean <- rowMeans(dat[b_shs_pathways_item_cols], na.rm = TRUE)
 
 # Create condition label
-# - Per Lines 354-361 of "cope_mcm_main_analyses_rmarkdown.Rmd" from Schleider et al. (2022) OSF project
+# - Per Lines 354-361 of "MASKED_main_analyses_rmarkdown.Rmd" from MASKED OSF project
 
 dat <- dat %>% mutate(condition_label = case_when(
   condition == "0" ~ "Placebo Control",
@@ -133,7 +133,7 @@ stopifnot(
 
 ### Values don't match those in Table 3 likely because Table 3 used imputed data 
 ### for postintervention and follow-up values
-### - See Line 1539 onward of "cope_mcm_main_analyses_rmarkdown.Rmd"
+### - See Line 1539 onward of "MASKED_main_analyses_rmarkdown.Rmd"
 
 stopifnot(
   sum(is.na(dat$b_shs_mean))  == 0,    # Complete scores at baseline
@@ -224,7 +224,7 @@ p_all <- plot_grid(p_a, p_b, p_c, p_d, labels = LETTERS[1:4])
 evaluate_shs_scoring_results_dir <- here("evaluate_shs_scoring", "results")
 dir.create(evaluate_shs_scoring_results_dir)
 
-ggsave2(file.path(evaluate_shs_scoring_results_dir, "evaluate_shs_scoring_in_schleider_et_al_2022_plots.pdf"),
+ggsave2(file.path(evaluate_shs_scoring_results_dir, "evaluate_shs_scoring_in_MASKED_plots.pdf"),
         plot = p_all,
         width = 10, height = 10)
 
@@ -234,8 +234,8 @@ ggsave2(file.path(evaluate_shs_scoring_results_dir, "evaluate_shs_scoring_in_sch
 
 # Define function to compute within-group Cohen's d
 # - Defined as (mean at Time 2 - mean at Time 1) / SD at Time 1
-# - Note: Schleider et al. (2022) paper used a different method
-#   - See "cope_mcm_lm_tables_rmarkdown.Rmd" from Schleider et al. (2022) OSF project
+# - Note: Main outcomes paper (citation MASKED) used a different method
+#   - See "MASKED_lm_tables_rmarkdown.Rmd" from MASKED OSF project
 
 wtn_d <- function(shs_tbl, cond_lbl, t1_score_lbl, t2_score_lbl) {
   # Extract relevant means and baseline SD
@@ -263,7 +263,7 @@ cont_lbl <- "Placebo Control"
 post_tbl3_lbl <- "Post SHS-Pathways (From Table 3)"
 
 stopifnot(
-  # Using Baseline SHS Overall score (within-group effect sizes not reported in Schleider et al., 2022)
+  # Using Baseline SHS Overall score (within-group effect sizes not reported in main outcomes paper; citation MASKED)
   
   round(wtn_d(shs_tbl, abc_lbl,  "Baseline SHS Overall",  post_tbl3_lbl), 2) == 1.25,
   round(wtn_d(shs_tbl, pers_lbl, "Baseline SHS Overall",  post_tbl3_lbl), 2) == 1.07,
@@ -300,8 +300,8 @@ stopifnot(
 
 # Define function to compute between-group Cohen's d
 # - Defined as (Condition 2 mean at Time 2 - Condition 1 mean at Time 2) / pooled SD at Time 1
-# - Note: Schleider et al. (2022) paper used a different method
-#   - See "cope_mcm_lm_tables_rmarkdown.Rmd" from Schleider et al. (2022) OSF project
+# - Note: Main outcomes paper (citation MASKED) used a different method
+#   - See "MASKED_lm_tables_rmarkdown.Rmd" from MASKED OSF project
 
 btw_d <- function(dat, shs_tbl, cond1_lbl, cond2_lbl, t1_score_lbl, t2_score_lbl) {
   # Extract relevant means, baseline SDs, and sample sizes
@@ -331,7 +331,7 @@ btw_d <- function(dat, shs_tbl, cond1_lbl, cond2_lbl, t1_score_lbl, t2_score_lbl
 ## Using postintervention mean from Table 3
 
 stopifnot(
-  # Using baseline SD for SHS Overall score (similar to -0.31 and -0.15 on p. 261 of Schleider et al., 2022)
+  # Using baseline SD for SHS Overall score (similar to -0.31 and -0.15 on p. 261 of main outcomes paper; citation MASKED)
   
   round(btw_d(dat, shs_tbl, abc_lbl,  cont_lbl, "Baseline SHS Overall",  post_tbl3_lbl), 2) == -0.30,
   round(btw_d(dat, shs_tbl, pers_lbl, cont_lbl, "Baseline SHS Overall",  post_tbl3_lbl), 2) == -0.17,
