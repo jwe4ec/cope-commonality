@@ -224,7 +224,7 @@ p_all <- plot_grid(p_a, p_b, p_c, p_d, labels = LETTERS[1:4])
 evaluate_shs_scoring_results_dir <- here("evaluate_shs_scoring", "results")
 dir.create(evaluate_shs_scoring_results_dir)
 
-ggsave2(file.path(evaluate_shs_scoring_results_dir, "evaluate_shs_scoring_in_MASKED_plots.pdf"),
+ggsave2(file.path(evaluate_shs_scoring_results_dir, "evaluate_shs_scoring_in_MASKED_parent_study_plots.pdf"),
         plot = p_all,
         width = 10, height = 10)
 
